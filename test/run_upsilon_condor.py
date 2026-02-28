@@ -47,23 +47,13 @@ process.selectedMuons = cms.EDFilter('PATMuonSelector',
 process.load("Analyzers.MuMu.MMproducer_cfi")
 process.MMproducer.muons=cms.InputTag('selectedMuons')
 
-process.load("Analyzers.MuMu.MMfilter_cfi")
-process.MMfiltered.do_trigger_match = cms.bool(False)
-
-process.MMcounter = cms.EDFilter('CandViewCountFilter',
-    src       = cms.InputTag("MMfiltered"),
-    minNumber = cms.uint32(1)
-)
-
 process.onia2MMSequence = cms.Sequence(
    process.selectedMuons *
-   process.MMproducer *
-   process.MMfiltered *
-   process.MMcounter
+   process.MMproducer
 )
 
 process.load("Analyzers.MuMu.MMrootupler_cfi")
-process.rootuple.dimuons = cms.InputTag("MMfiltered")
+process.rootuple.dimuons = cms.InputTag("MMproducer")
 process.rootuple.onia_pdgid = cms.uint32(553)
 process.rootuple.isMC = cms.bool(True)
 
