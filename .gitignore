@@ -1,0 +1,13 @@
+__init__.py
+*.pyc
+.*.swp
+.#*
+#*#
+*~
+*.o
+*.so
+*.a
+__pycache__/
+*.root
+*.log
+*.tmp
