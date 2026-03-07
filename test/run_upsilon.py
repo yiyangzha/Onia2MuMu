@@ -5,7 +5,6 @@ options.parseArguments()
 ouput_filename = options.outputFile
 input_filename = options.inputFiles
 
-input_filename = 'file:MiniAOD.root'
 ouput_filename = 'rootuple.root'
 
 import FWCore.ParameterSet.Config as cms
