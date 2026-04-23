@@ -62,6 +62,9 @@ private:
    TLorentzVector muonM_p4;
 
    Float_t vProb;
+   Float_t dimuon_sv_x;
+   Float_t dimuon_sv_y;
+   Float_t dimuon_sv_z;
    Float_t DCA;
    Float_t ppdlPV;
    Float_t ppdlErrPV;
@@ -112,6 +115,9 @@ MMrootupler::MMrootupler(const edm::ParameterSet &iConfig) : dimuons_(consumes<p
       mm_tree->Branch("muonM_p4", "TLorentzVector", &muonM_p4);
 
       mm_tree->Branch("vProb", &vProb, "vProb/F");
+      mm_tree->Branch("dimuon_sv_x", &dimuon_sv_x, "dimuon_sv_x/F");
+      mm_tree->Branch("dimuon_sv_y", &dimuon_sv_y, "dimuon_sv_y/F");
+      mm_tree->Branch("dimuon_sv_z", &dimuon_sv_z, "dimuon_sv_z/F");
       mm_tree->Branch("DCA", &DCA, "DCA/F");
       mm_tree->Branch("ppdlPV", &ppdlPV, "ppdlPV/F");
       mm_tree->Branch("ppdlErrPV", &ppdlErrPV, "ppdlErrPV/F");
@@ -220,6 +226,9 @@ void MMrootupler::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
    nonia = 0;
 
    vProb = -1.;
+   dimuon_sv_x = 0.;
+   dimuon_sv_y = 0.;
+   dimuon_sv_z = 0.;
 
    dimuon_p4.SetPtEtaPhiM(0., 0., 0., 0.);
    muonP_p4.SetPtEtaPhiM(0., 0., 0., 0.);
@@ -302,6 +311,9 @@ void MMrootupler::analyze(const edm::Event &iEvent, const edm::EventSetup &iSetu
                }
                muonP_p4.SetPtEtaPhiM(vP.pt(), vP.eta(), vP.phi(), vP.mass());
                muonM_p4.SetPtEtaPhiM(vM.pt(), vM.eta(), vM.phi(), vM.mass());
+               dimuon_sv_x = TheDimuon->vx();
+               dimuon_sv_y = TheDimuon->vy();
+               dimuon_sv_z = TheDimuon->vz();
                DCA = TheDimuon->userFloat("DCA");
                ppdlPV = TheDimuon->userFloat("ppdlPV");
                ppdlErrPV = TheDimuon->userFloat("ppdlErrPV");

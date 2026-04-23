@@ -1,5 +1,12 @@
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('analysis')
+options.register(
+    'isMC',
+    False,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.bool,
+    'Run on MC instead of data'
+)
 options.parseArguments()
 
 ouput_filename = options.outputFile
@@ -18,7 +25,10 @@ process.load('Configuration.StandardSequences.Services_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, '124X_dataRun3_v15', '')
+if options.isMC:
+    process.GlobalTag = GlobalTag(process.GlobalTag, '130X_mcRun3_2022_realistic_postEE_v6', '')
+else:
+    process.GlobalTag = GlobalTag(process.GlobalTag, '124X_dataRun3_v15', '')
 
 process.MessageLogger = cms.Service("MessageLogger",
     cerr = cms.untracked.PSet(
@@ -49,23 +59,33 @@ process.selectedMuons = cms.EDFilter('PATMuonSelector',
 process.load("Analyzers.MuMu.MMproducer_cfi")
 process.MMproducer.muons=cms.InputTag('selectedMuons')
 
-process.load("Analyzers.MuMu.MMfilter_cfi")
-process.MMfiltered.do_trigger_match = cms.bool(True)
+if options.isMC:
+    process.onia2MMSequence = cms.Sequence(
+       process.selectedMuons *
+       process.MMproducer
+    )
+else:
+    process.load("Analyzers.MuMu.MMfilter_cfi")
+    process.MMfiltered.do_trigger_match = cms.bool(True)
 
-process.MMcounter = cms.EDFilter('CandViewCountFilter',
-    src       = cms.InputTag("MMfiltered"),
-    minNumber = cms.uint32(1)
-)
+    process.MMcounter = cms.EDFilter('CandViewCountFilter',
+        src       = cms.InputTag("MMfiltered"),
+        minNumber = cms.uint32(1)
+    )
 
-process.onia2MMSequence = cms.Sequence(
-   process.selectedMuons *
-   process.MMproducer *
-   process.MMfiltered *
-   process.MMcounter
-)
+    process.onia2MMSequence = cms.Sequence(
+       process.selectedMuons *
+       process.MMproducer *
+       process.MMfiltered *
+       process.MMcounter
+    )
 
 process.load("Analyzers.MuMu.MMrootupler_cfi")
-process.rootuple.dimuons = cms.InputTag("MMfiltered")
+if options.isMC:
+    process.rootuple.dimuons = cms.InputTag("MMproducer")
+else:
+    process.rootuple.dimuons = cms.InputTag("MMfiltered")
 process.rootuple.onia_pdgid = cms.uint32(553)
+process.rootuple.isMC = cms.bool(options.isMC)
 
 process.p = cms.Path(process.onia2MMSequence * process.rootuple)
