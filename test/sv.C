@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <filesystem>
 #include <iostream>
 #include <limits>
 #include <sstream>
@@ -18,8 +19,8 @@
 
 namespace {
 
-const char *kDataDataset = "/REPLACE_WITH_DATA_USER_DATASET/USER";
-const char *kMcDataset = "/REPLACE_WITH_MC_USER_DATASET/USER";
+const char *kDataInput = "/REPLACE_WITH_DATA_USER_DATASET/USER";
+const char *kMcInput = "/REPLACE_WITH_MC_USER_DATASET/USER";
 const char *kDbsInstance = "prod/phys03";
 const char *kRedirector = "root://cms-xrd-global.cern.ch/";
 
@@ -52,8 +53,8 @@ struct SelectedValues {
   std::vector<double> z;
 };
 
-bool IsPlaceholderDataset(const std::string &dataset) {
-  return dataset.find("REPLACE_WITH") != std::string::npos;
+bool IsPlaceholderInput(const std::string &input) {
+  return input.find("REPLACE_WITH") != std::string::npos;
 }
 
 std::vector<std::string> SplitLines(const TString &text) {
@@ -82,8 +83,63 @@ std::vector<std::string> QueryDatasetFiles(const std::string &dataset) {
   return SplitLines(output);
 }
 
-void AddDatasetFiles(TChain &chain, const std::string &dataset) {
-  const std::vector<std::string> files = QueryDatasetFiles(dataset);
+bool IsRootFile(const std::filesystem::path &path) {
+  return path.has_extension() && path.extension() == ".root";
+}
+
+std::vector<std::string> CollectLocalRootFiles(const std::string &input) {
+  std::vector<std::string> files;
+  const std::filesystem::path path(input);
+
+  std::error_code error;
+  if (std::filesystem::is_regular_file(path, error)) {
+    if (IsRootFile(path)) {
+      std::error_code absoluteError;
+      files.push_back(std::filesystem::absolute(path, absoluteError).string());
+    }
+    return files;
+  }
+
+  std::filesystem::recursive_directory_iterator iterator(
+      path, std::filesystem::directory_options::skip_permission_denied, error);
+  std::filesystem::recursive_directory_iterator end;
+  while (iterator != end) {
+    if (error) {
+      error.clear();
+      iterator.increment(error);
+      continue;
+    }
+
+    std::error_code fileError;
+    if (iterator->is_regular_file(fileError) && IsRootFile(iterator->path())) {
+      std::error_code absoluteError;
+      files.push_back(
+          std::filesystem::absolute(iterator->path(), absoluteError).string());
+    }
+    iterator.increment(error);
+  }
+
+  std::sort(files.begin(), files.end());
+  return files;
+}
+
+bool IsExistingLocalPath(const std::string &input) {
+  std::error_code error;
+  return std::filesystem::exists(std::filesystem::path(input), error);
+}
+
+std::vector<std::string> ResolveInputFiles(const std::string &input) {
+  if (IsExistingLocalPath(input)) {
+    std::cout << "Resolving local ROOT files from " << input << std::endl;
+    return CollectLocalRootFiles(input);
+  }
+
+  std::cout << "Resolving dataset files from " << input << std::endl;
+  return QueryDatasetFiles(input);
+}
+
+void AddInputFiles(TChain &chain, const std::string &input) {
+  const std::vector<std::string> files = ResolveInputFiles(input);
   for (const std::string &file : files) {
     if (file.rfind("/store/", 0) == 0) {
       chain.Add((std::string(kRedirector) + file).c_str());
@@ -284,19 +340,19 @@ void DrawComparison(const char *axisName, const char *xTitle,
 void sv() {
   gStyle->SetOptStat(0);
 
-  const std::string dataDataset = kDataDataset;
-  const std::string mcDataset = kMcDataset;
-  if (IsPlaceholderDataset(dataDataset) || IsPlaceholderDataset(mcDataset)) {
-    std::cout << "Please replace kDataDataset and kMcDataset in test/sv.C "
-                 "with the published USER datasets before running."
+  const std::string dataInput = kDataInput;
+  const std::string mcInput = kMcInput;
+  if (IsPlaceholderInput(dataInput) || IsPlaceholderInput(mcInput)) {
+    std::cout << "Please replace kDataInput and kMcInput in test/sv.C "
+                 "with either published USER datasets or local paths before running."
               << std::endl;
     return;
   }
 
   TChain dataChain("mm_tree");
   TChain mcChain("mm_tree");
-  AddDatasetFiles(dataChain, dataDataset);
-  AddDatasetFiles(mcChain, mcDataset);
+  AddInputFiles(dataChain, dataInput);
+  AddInputFiles(mcChain, mcInput);
 
   if (dataChain.GetNtrees() == 0 || mcChain.GetNtrees() == 0) {
     std::cerr << "Failed to attach files for one or both datasets." << std::endl;
