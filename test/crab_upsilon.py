@@ -2,10 +2,11 @@ from CRABClient.UserUtilities import config
 config = config()
 
 isMC = False
-myname='CMSDAS_Upsilon_2022F_ParkingDoubleMuonLowMass0_v1'
 if isMC:
+    myname='CMSDAS_Upsilon_2022_MC'
     mydata='/Upsilonto2Mu_UpsilonFilter_2MuFilter_TuneCP5_13p6TeV_pythia8/Run3Summer22EEMiniAODv3-124X_mcRun3_2022_realistic_postEE_v1-v2/MINIAODSIM'
 else:
+    myname='CMSDAS_Upsilon_2022F_ParkingDoubleMuonLowMass0'
     mydata='/ParkingDoubleMuonLowMass0/Run2022F-PromptReco-v1/MINIAOD'
 myrun ='run_upsilon.py'
 
@@ -27,7 +28,7 @@ config.Data.inputDataset = mydata
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
-config.Data.totalUnits = config.Data.unitsPerJob * 100
+config.Data.totalUnits = config.Data.unitsPerJob * 200
 if not isMC:
     config.Data.lumiMask = 'Cert_Collisions2022_355100_362760_Muon.json'
 
