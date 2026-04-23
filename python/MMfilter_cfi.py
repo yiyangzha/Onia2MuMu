@@ -6,6 +6,6 @@ MMfiltered = cms.EDProducer('MMfilter',
       mmSelection       = cms.string("pt > 0. && charge==0"),
       do_trigger_match  = cms.bool(True),
       HLT_filters       = cms.vstring(
-        'HLT_Dimuon0_Upsilon_v*',                         #  1=        1
+        'HLT_Dimuon10_Upsilon_y1p4_v*',                         #  1=        1
       ),
 )
