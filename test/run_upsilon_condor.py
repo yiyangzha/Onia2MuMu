@@ -16,7 +16,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 from Configuration.AlCa.GlobalTag import GlobalTag
 #process.GlobalTag = GlobalTag(process.GlobalTag, '150X_dataRun3_v6', '')
-process.GlobalTag = GlobalTag(process.GlobalTag, '150X_mcRun3_2025_realistic_v12', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '130X_mcRun3_2022_realistic_postEE_v6', '')
 
 process.MessageLogger = cms.Service("MessageLogger",
     cerr = cms.untracked.PSet(

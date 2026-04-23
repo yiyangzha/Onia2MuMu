@@ -1,8 +1,8 @@
 from CRABClient.UserUtilities import config
 config = config()
 
-myname='CMSDAS_Upsilon_2025E_ParkingDoubleMuonLowMass0_v1'
-mydata='/ParkingDoubleMuonLowMass0/Run2025E-PromptReco-v1/MINIAOD'
+myname='CMSDAS_Upsilon_2022F_ParkingDoubleMuonLowMass0_v1'
+mydata='/ParkingDoubleMuonLowMass0/Run2022F-PromptReco-v1/MINIAOD'
 myrun ='run_upsilon.py'
 
 import datetime, time
@@ -22,7 +22,8 @@ config.Data.inputDataset = mydata
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
-config.Data.lumiMask = 'Cert_Collisions2025_391658_398903_Muon.json'
+config.Data.totalUnits = config.Data.unitsPerJob * 100
+config.Data.lumiMask = 'Cert_Collisions2022_355100_362760_Muon.json'
 
 config.Data.outLFNDirBase = '/store/user/<user_name>/CMSDAS/'
 config.Data.publication = False
